@@ -27,10 +27,10 @@ FUNDO_DIA = (0.73, 0.85, 0.92, 1.0)
 FUNDO_NOITE = (0.05, 0.05, 0.12, 1.0)
 VERDE = (0.20, 0.65, 0.25, 1.0)
 
-ESCALA_GRAMA = 0.15
-ESCALA_CORPO = 0.62
-ESCALA_OLHO, ESCALA_PUPILA = 0.085, 0.040
-CENTRO_OLHO = (0.17, 0.20)   # afastamento do eixo e altura de cada olho
+ESCALA_GRAMA = 0.10
+ESCALA_CORPO = 0.31
+ESCALA_OLHO, ESCALA_PUPILA = 0.0425, 0.020
+CENTRO_OLHO = (0.085, 0.10)   # afastamento do eixo e altura de cada olho
 
 # Ate onde a pupila pode sair do centro do olho, sem escapar do branco.
 LIMITE_OLHAR = ESCALA_OLHO - ESCALA_PUPILA
@@ -164,11 +164,13 @@ def triangulo():
 
 vbo_tri, vao_tri = montar(triangulo())
 
+
+
 def desenhar_grama():
-    passo = ESCALA_GRAMA * 1.5
-    for i in range(11):
+    passo = 0.20  #ir andando no eixo x
+    for i in range(15):
         x = -1.0 + i * passo
-        y = -1.0 + ESCALA_GRAMA
+        y = -0.90
         desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE)
         
 while not glfw.window_should_close(janela):
@@ -177,11 +179,12 @@ while not glfw.window_should_close(janela):
 
     ctx.clear(*(FUNDO_NOITE if noite else FUNDO_DIA))
     desenhar_grama()
-    desenhar(vao_coracao, ESCALA_CORPO, (0.0, 0.0), MAGENTA)
+    POS_CORACAO = (0.5, -0.7)
+    desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
     for lado in (-1.0, 1.0):
-        centro = (lado * CENTRO_OLHO[0], CENTRO_OLHO[1])
+        centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
         desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO)
         desenhar(vao_circulo, ESCALA_PUPILA,
                  (centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
