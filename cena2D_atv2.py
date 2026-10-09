@@ -25,7 +25,9 @@ BRANCO_OLHO = (1.0, 1.0, 1.0, 1.0)
 PRETO = (0.05, 0.05, 0.05, 1.0)
 FUNDO_DIA = (0.73, 0.85, 0.92, 1.0)
 FUNDO_NOITE = (0.05, 0.05, 0.12, 1.0)
+VERDE = (0.20, 0.65, 0.25, 1.0)
 
+ESCALA_GRAMA = 0.15
 ESCALA_CORPO = 0.62
 ESCALA_OLHO, ESCALA_PUPILA = 0.085, 0.040
 CENTRO_OLHO = (0.17, 0.20)   # afastamento do eixo e altura de cada olho
@@ -154,13 +156,27 @@ def desenhar(vao, escala, deslocamento, cor):
     ajustar('u_cor', cor)
     vao.render(moderngl.TRIANGLE_FAN)
 
+def triangulo():
+    # 3 vértices (x, y, z, w) = 1 triângulo, base embaixo e ponta em cima
+    return np.array([(-1.0, -1.0, 0.0, 1.0),
+                     ( 1.0, -1.0, 0.0, 1.0),
+                     ( 0.0,  1.0, 0.0, 1.0)], dtype='f4')
 
+vbo_tri, vao_tri = montar(triangulo())
+
+def desenhar_grama():
+    passo = ESCALA_GRAMA * 1.5
+    for i in range(11):
+        x = -1.0 + i * passo
+        y = -1.0 + ESCALA_GRAMA
+        desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE)
+        
 while not glfw.window_should_close(janela):
     # Uma escrita por quadro: os cinco desenhos abaixo leem este mesmo valor.
     ajustar('u_atenuacao', 0.35 if noite else 1.0)
 
     ctx.clear(*(FUNDO_NOITE if noite else FUNDO_DIA))
-
+    desenhar_grama()
     desenhar(vao_coracao, ESCALA_CORPO, (0.0, 0.0), MAGENTA)
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
@@ -173,7 +189,7 @@ while not glfw.window_should_close(janela):
     glfw.swap_buffers(janela)
     glfw.poll_events()
 
-for recurso in (vao_coracao, vao_circulo, vbo_coracao, vbo_circulo, prog):
+for recurso in (vao_coracao, vao_circulo, vbo_coracao, vbo_circulo, vao_tri, vbo_tri, prog):
     recurso.release()
 glfw.terminate()
 print("Execucao finalizada.")
