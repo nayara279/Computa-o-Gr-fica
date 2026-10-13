@@ -28,6 +28,8 @@ FUNDO_NOITE = (0.05, 0.05, 0.12, 1.0)
 VERDE = (0.20, 0.65, 0.25, 1.0)
 AMARELO = (1.0, 0.90, 0.0, 1.0)
 CINZA = (0.75, 0.75, 0.75, 1.0)
+COR_PETALA = (0.95, 0.55, 0.75, 1.0)
+VERDE_CAULE = (0.10, 0.45, 0.15, 1.0)
 
 ESCALA_GRAMA = 0.10
 ESCALA_CORPO = 0.31
@@ -153,12 +155,12 @@ def ajustar(nome, valor):
         uniforme.value = valor
 
 
-def desenhar(vao, escala, deslocamento, cor):
+def desenhar(vao, escala, deslocamento, cor, primitiva=moderngl.TRIANGLE_FAN):
     """Carrega os tres uniformes daquele desenho e dispara a chamada."""
     ajustar('u_escala', escala)
     ajustar('u_deslocamento', deslocamento)
     ajustar('u_cor', cor)
-    vao.render(moderngl.TRIANGLE_FAN)
+    vao.render(primitiva)
 
 def triangulo():
     # 3 vértices (x, y, z, w) = 1 triângulo, base embaixo e ponta em cima
@@ -169,18 +171,46 @@ def triangulo():
 vbo_tri, vao_tri = montar(triangulo())
 
 
+def retangulo():
+    # caule: x em [-0.05, 0.05], y em [0, 1], feito de 2 triangulos (6 vertices)
+    return np.array([(-0.05, 0.0, 0.0, 1.0), ( 0.05, 0.0, 0.0, 1.0), ( 0.05, 1.0, 0.0, 1.0),
+                     ( 0.05, 1.0, 0.0, 1.0), (-0.05, 1.0, 0.0, 1.0), (-0.05, 0.0, 0.0, 1.0)],
+                    dtype='f4')
+
+vbo_caule, vao_caule = montar(retangulo())
+
+
 def desenhar_grama():
     passo = 0.20  #ir andando no eixo x
     for i in range(15):
         x = -1.0 + i * passo
         y = -0.90
-        desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE)
-        
+        desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE, moderngl.TRIANGLES)
+
+
+def desenhar_flor(x, y):
+    altura = 0.30
+    desenhar(vao_caule, altura, (x, y), VERDE_CAULE, moderngl.TRIANGLES)
+    topo = y + altura                 # onde fica o centro da flor
+    for k in range(6):                # 6 petalas em volta do centro
+        angulo = k * 2 * np.pi / 6
+        px = x + 0.05 * np.cos(angulo)
+        py = topo + 0.05 * np.sin(angulo)
+        desenhar(vao_circulo, 0.03, (px, py), COR_PETALA)
+    desenhar(vao_circulo, 0.025, (x, topo), AMARELO)   # miolo
+
+
+def desenhar_flores():
+    passo = 0.20  #ir andando no eixo x
+    for i in range(5):
+        desenhar_flor(-0.8 + i * passo, -0.88)
+
 while not glfw.window_should_close(janela):
     # Uma escrita por quadro: os cinco desenhos abaixo leem este mesmo valor.
     ajustar('u_atenuacao', 0.35 if noite else 1.0)
 
     ctx.clear(*(FUNDO_NOITE if noite else FUNDO_DIA))
+    desenhar_flores()
     desenhar_grama()
     POS_CORACAO = (0.5, -0.7)
     desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
@@ -202,7 +232,7 @@ while not glfw.window_should_close(janela):
     glfw.swap_buffers(janela)
     glfw.poll_events()
 
-for recurso in (vao_coracao, vao_circulo, vbo_coracao, vbo_circulo, vao_tri, vbo_tri, prog):
+for recurso in (vao_coracao, vao_circulo, vbo_coracao, vbo_circulo, vao_tri, vbo_tri, vao_caule, vbo_caule, prog):
     recurso.release()
 glfw.terminate()
 print("Execucao finalizada.")
