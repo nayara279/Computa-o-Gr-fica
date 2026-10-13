@@ -9,7 +9,7 @@ o desenho seguinte ja sai diferente.
 MCCC007-23 - Computacao Grafica - UFABC
 
 Executar: python 06_senhor_coracao.py
-Teclas:   SETAS movem o olhar | D alterna dia/noite | ESC sai
+Teclas:   SETAS movem o coracao | D alterna dia/noite | ESC sai
 """
 import sys
 from pathlib import Path
@@ -38,9 +38,7 @@ ESCALA_SOL = 0.35
 ESCALA_LUA = (0.10)
 CENTRO_OLHO = (0.085, 0.10)   # afastamento do eixo e altura de cada olho
 
-# Ate onde a pupila pode sair do centro do olho, sem escapar do branco.
-LIMITE_OLHAR = ESCALA_OLHO - ESCALA_PUPILA
-PASSO_OLHAR = LIMITE_OLHAR / 2.0
+PASSO_CORACAO = 0.05    # quanto o coracao anda a cada toque de seta
 
 
 def leque(x, y):
@@ -112,12 +110,12 @@ vbo_coracao, vao_coracao = montar(curva_coracao())
 vbo_circulo, vao_circulo = montar(curva_circulo())
 
 # Todo o estado do programa cabe em dois numeros e um booleano.
-olhar_x, olhar_y = 0.0, 0.0
+coracao_x, coracao_y = 0.5, -0.7
 noite = False
 
 
 def tecla(window, key, scancode, action, mods):
-    global olhar_x, olhar_y, noite
+    global coracao_x, coracao_y, noite
     if action != glfw.PRESS and action != glfw.REPEAT:
         return
     if key == glfw.KEY_ESCAPE:
@@ -127,16 +125,11 @@ def tecla(window, key, scancode, action, mods):
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT, glfw.KEY_UP, glfw.KEY_DOWN):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
         dy = {glfw.KEY_DOWN: -1.0, glfw.KEY_UP: 1.0}.get(key, 0.0)
-        olhar_x += dx * PASSO_OLHAR
-        olhar_y += dy * PASSO_OLHAR
-        # O branco do olho e um CIRCULO, entao o limite tem de ser no vetor.
-        # Limitar cada eixo em separado prende a pupila num quadrado, e na
-        # diagonal ela escapa: o centro chega a 0.064 do centro do olho e a
-        # borda da pupila a 0.104, contra um raio de 0.085.
-        distancia = (olhar_x ** 2 + olhar_y ** 2) ** 0.5
-        if distancia > LIMITE_OLHAR:
-            olhar_x *= LIMITE_OLHAR / distancia
-            olhar_y *= LIMITE_OLHAR / distancia
+        coracao_x += dx * PASSO_CORACAO
+        coracao_y += dy * PASSO_CORACAO
+        # mantem o coracao dentro da janela
+        coracao_x = max(-0.7, min(0.7, coracao_x))
+        coracao_y = max(-0.7, min(0.7, coracao_y))
 
 
 glfw.set_key_callback(janela, tecla)
@@ -212,7 +205,7 @@ while not glfw.window_should_close(janela):
     ctx.clear(*(FUNDO_NOITE if noite else FUNDO_DIA))
     desenhar_flores()
     desenhar_grama()
-    POS_CORACAO = (0.5, -0.7)
+    POS_CORACAO = (coracao_x, coracao_y)
     desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
     if noite:
         desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), CINZA)
@@ -226,8 +219,7 @@ while not glfw.window_should_close(janela):
     for lado in (-1.0, 1.0):
         centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
         desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO)
-        desenhar(vao_circulo, ESCALA_PUPILA,
-                 (centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
+        desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO)
 
     glfw.swap_buffers(janela)
     glfw.poll_events()
