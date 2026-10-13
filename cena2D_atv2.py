@@ -9,7 +9,7 @@ o desenho seguinte ja sai diferente.
 MCCC007-23 - Computacao Grafica - UFABC
 
 Executar: python 06_senhor_coracao.py
-Teclas:   SETAS movem o coracao | D alterna dia/noite | ESC sai
+Teclas:   SETAS movem o coracao | D alterna dia/noite | C troca a cor das petalas | ESC sai
 """
 import sys
 from pathlib import Path
@@ -29,6 +29,7 @@ VERDE = (0.20, 0.65, 0.25, 1.0)
 AMARELO = (1.0, 0.90, 0.0, 1.0)
 CINZA = (0.75, 0.75, 0.75, 1.0)
 COR_PETALA = (0.95, 0.55, 0.75, 1.0)
+COR_PETALA_2 = (0.55, 0.45, 0.95, 1.0)
 VERDE_CAULE = (0.10, 0.45, 0.15, 1.0)
 
 ESCALA_GRAMA = 0.10
@@ -112,16 +113,19 @@ vbo_circulo, vao_circulo = montar(curva_circulo())
 # Todo o estado do programa cabe em dois numeros e um booleano.
 coracao_x, coracao_y = 0.5, -0.7
 noite = False
+petala_alternativa = False
 
 
 def tecla(window, key, scancode, action, mods):
-    global coracao_x, coracao_y, noite
+    global coracao_x, coracao_y, noite, petala_alternativa
     if action != glfw.PRESS and action != glfw.REPEAT:
         return
     if key == glfw.KEY_ESCAPE:
         glfw.set_window_should_close(window, True)
     elif key == glfw.KEY_D:
         noite = not noite
+    elif key == glfw.KEY_C and action == glfw.PRESS:
+        petala_alternativa = not petala_alternativa
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT, glfw.KEY_UP, glfw.KEY_DOWN):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
         dy = {glfw.KEY_DOWN: -1.0, glfw.KEY_UP: 1.0}.get(key, 0.0)
@@ -185,11 +189,12 @@ def desenhar_flor(x, y):
     altura = 0.30
     desenhar(vao_caule, altura, (x, y), VERDE_CAULE, moderngl.TRIANGLES)
     topo = y + altura                 # onde fica o centro da flor
+    cor = COR_PETALA_2 if petala_alternativa else COR_PETALA
     for k in range(6):                # 6 petalas em volta do centro
         angulo = k * 2 * np.pi / 6
         px = x + 0.05 * np.cos(angulo)
         py = topo + 0.05 * np.sin(angulo)
-        desenhar(vao_circulo, 0.03, (px, py), COR_PETALA)
+        desenhar(vao_circulo, 0.03, (px, py), cor)
     desenhar(vao_circulo, 0.025, (x, topo), AMARELO)   # miolo
 
 
