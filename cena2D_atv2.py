@@ -87,7 +87,7 @@ glfw.window_hint(glfw.OPENGL_FORWARD_COMPAT, glfw.TRUE)
 glfw.window_hint(glfw.SAMPLES, 4)        # quatro amostras por pixel
 glfw.window_hint(glfw.RESIZABLE, False)  # janela quadrada: ver a nota
 
-janela = glfw.create_window(640, 640, "Senhor Coracao", None, None)
+janela = glfw.create_window(640, 640, "Senhor Coracao - Cena 2D", None, None)
 if not janela:
     glfw.terminate()
     sys.exit("FALHA: nao foi possivel criar a janela")
