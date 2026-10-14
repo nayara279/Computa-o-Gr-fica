@@ -174,6 +174,7 @@ def desenhar(vao, escala, deslocamento, cor, primitiva):
     vao.render(primitiva)
 
 def triangulo():
+    # 3 vértices (x, y, z, w) = 1 triângulo, base embaixo e ponta em cima
     return np.array([(-1.0, -1.0, 0.0, 1.0),
                      ( 1.0, -1.0, 0.0, 1.0),
                      ( 0.0,  1.0, 0.0, 1.0)], dtype='f4')
@@ -181,6 +182,7 @@ def triangulo():
 vbo_tri, vao_tri = montar(triangulo())
 
 def retangulo():
+    # caule: x em [-0.05, 0.05], y em [0, 1], feito de 2 triangulos (6 vertices)
     return np.array([(-0.05, 0.0, 0.0, 1.0), ( 0.05, 0.0, 0.0, 1.0), ( 0.05, 1.0, 0.0, 1.0),
                      ( 0.05, 1.0, 0.0, 1.0), (-0.05, 1.0, 0.0, 1.0), (-0.05, 0.0, 0.0, 1.0)],
                     dtype='f4')
