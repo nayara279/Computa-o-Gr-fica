@@ -219,8 +219,8 @@ def desenhar_flor(x, y):
 
 def desenhar_flores():
     passo = 0.20   
-    for i in range(9):
-        desenhar_flor(-0.8 + i * passo, -0.88)
+    for i in range(11):
+        desenhar_flor(-1.0 + i * passo, -0.90)
 
 
 while not glfw.window_should_close(janela):
