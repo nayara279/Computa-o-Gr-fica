@@ -166,12 +166,12 @@ def ajustar(nome, valor):
         uniforme.value = valor
 
 
-def desenhar(vao, escala, deslocamento, cor, primitiva=moderngl.TRIANGLE_FAN):
+def desenhar(vao, escala, deslocamento, cor, primitiva):
     """Carrega os tres uniformes daquele desenho e dispara a chamada."""
     ajustar('u_escala', escala)
     ajustar('u_deslocamento', deslocamento)
     ajustar('u_cor', cor)
-    vao.render(moderngl.TRIANGLE_FAN)
+    vao.render(primitiva)
 
 def triangulo():
     # 3 vértices (x, y, z, w) = 1 triângulo, base embaixo e ponta em cima
@@ -197,13 +197,13 @@ def desenhar_grama():
         desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE, moderngl.TRIANGLES)
 
 def desenhar_sol():
-    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), AMARELO)
+    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), AMARELO, moderngl.TRIANGLE_FAN)
 
 def desenhar_lua():
-    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), CINZA)
-    desenhar(vao_circulo, ESCALA_LUA, (-0.40, 0.32), BRANCO_OLHO)
-    desenhar(vao_circulo, (ESCALA_LUA-0.04), (-0.27, 0.48), BRANCO_OLHO)
-    desenhar(vao_circulo, (ESCALA_LUA-0.05), (-0.60, 0.3), BRANCO_OLHO)
+    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), CINZA, moderngl.TRIANGLE_FAN)
+    desenhar(vao_circulo, ESCALA_LUA, (-0.40, 0.32), BRANCO_OLHO, moderngl.TRIANGLE_FAN)
+    desenhar(vao_circulo, (ESCALA_LUA-0.04), (-0.27, 0.48), BRANCO_OLHO, moderngl.TRIANGLE_FAN)
+    desenhar(vao_circulo, (ESCALA_LUA-0.05), (-0.60, 0.3), BRANCO_OLHO, moderngl.TRIANGLE_FAN)
 
 def desenhar_flor(x, y):
     altura = 0.30
@@ -214,8 +214,8 @@ def desenhar_flor(x, y):
         angulo = k * 2 * np.pi / 6
         px = x + 0.05 * np.cos(angulo)
         py = topo + 0.05 * np.sin(angulo)
-        desenhar(vao_circulo, 0.03, (px, py), cor)
-    desenhar(vao_circulo, 0.025, (x, topo), AMARELO)   
+        desenhar(vao_circulo, 0.03, (px, py), cor, moderngl.TRIANGLE_FAN)
+    desenhar(vao_circulo, 0.025, (x, topo), AMARELO, moderngl.TRIANGLE_FAN)   
 
 def desenhar_flores():
     passo = 0.20   
@@ -236,14 +236,14 @@ while not glfw.window_should_close(janela):
         desenhar_sol()
 
     POS_CORACAO = (coracao_x, coracao_y)
-    desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
+    desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA, moderngl.TRIANGLE_FAN)
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
     for lado in (-1.0, 1.0):
         centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
-        desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO)
+        desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO, moderngl.TRIANGLE_FAN)
         #desenhar(vao_circulo, ESCALA_PUPILA,(centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
-        desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO)
+        desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO, moderngl.TRIANGLE_FAN)
 
     glfw.swap_buffers(janela)
     glfw.poll_events()
