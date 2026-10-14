@@ -131,7 +131,13 @@ def tecla(window, key, scancode, action, mods):
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT, glfw.KEY_UP, glfw.KEY_DOWN):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
         dy = {glfw.KEY_DOWN: -1.0, glfw.KEY_UP: 1.0}.get(key, 0.0)
-        """ olhar_x += dx * PASSO_OLHAR
+        coracao_x += dx * PASSO_CORACAO
+        coracao_y += dy * PASSO_CORACAO
+        # mantem o coracao dentro da janela
+        coracao_x = max(-0.7, min(0.7, coracao_x))
+        coracao_y = max(-0.7, min(0.7, coracao_y))
+        """ tirei o movimento do olho para colocar o movimento do coração
+        olhar_x += dx * PASSO_OLHAR
         olhar_y += dy * PASSO_OLHAR
         # O branco do olho e um CIRCULO, entao o limite tem de ser no vetor.
         # Limitar cada eixo em separado prende a pupila num quadrado, e na
@@ -141,11 +147,7 @@ def tecla(window, key, scancode, action, mods):
         if distancia > LIMITE_OLHAR:
             olhar_x *= LIMITE_OLHAR / distancia
             olhar_y *= LIMITE_OLHAR / distancia """
-        coracao_x += dx * PASSO_CORACAO
-        coracao_y += dy * PASSO_CORACAO
-        # mantem o coracao dentro da janela
-        coracao_x = max(-0.7, min(0.7, coracao_x))
-        coracao_y = max(-0.7, min(0.7, coracao_y))
+       
     elif key == glfw.KEY_C and action == glfw.PRESS:
         petala_alternativa = not petala_alternativa
 
