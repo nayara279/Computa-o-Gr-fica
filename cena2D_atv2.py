@@ -9,7 +9,7 @@ o desenho seguinte ja sai diferente.
 MCCC007-23 - Computacao Grafica - UFABC
 
 Executar: python 06_senhor_coracao.py
-Teclas:   SETAS movem o olhar | D alterna dia/noite | ESC sai
+Teclas:   SETAS movem o olhar | D alterna dia/noite | ESC sai | tecla c troca a cor
 """
 import sys
 from pathlib import Path
@@ -28,8 +28,9 @@ FUNDO_NOITE = (0.05, 0.05, 0.12, 1.0)
 VERDE = (0.20, 0.65, 0.25, 1.0)
 AMARELO = (1.0, 0.90, 0.0, 1.0)
 CINZA = (0.75, 0.75, 0.75, 1.0)
-COR_PETALA = (0.95, 0.55, 0.75, 1.0)
 VERDE_CAULE = (0.10, 0.45, 0.15, 1.0)
+COR_PETALA = (1.0, 0.5, 0.0, 1.0)
+COR_PETALA_2 = (0.55, 0.45, 0.95, 1.0)
 
 ESCALA_GRAMA = 0.10
 ESCALA_CORPO = 0.31
@@ -39,8 +40,9 @@ ESCALA_LUA = (0.10)
 CENTRO_OLHO = (0.085, 0.10)   # afastamento do eixo e altura de cada olho
 
 # Ate onde a pupila pode sair do centro do olho, sem escapar do branco.
-LIMITE_OLHAR = ESCALA_OLHO - ESCALA_PUPILA
-PASSO_OLHAR = LIMITE_OLHAR / 2.0
+#LIMITE_OLHAR = ESCALA_OLHO - ESCALA_PUPILA
+#PASSO_OLHAR = LIMITE_OLHAR / 2.0
+PASSO_CORACAO = 0.05
 
 
 def leque(x, y):
@@ -112,12 +114,14 @@ vbo_coracao, vao_coracao = montar(curva_coracao())
 vbo_circulo, vao_circulo = montar(curva_circulo())
 
 # Todo o estado do programa cabe em dois numeros e um booleano.
-olhar_x, olhar_y = 0.0, 0.0
+#olhar_x, olhar_y = 0.0, 0.0
+coracao_x, coracao_y = 0.0, -0.7
 noite = False
-
+petala_alternativa = False
 
 def tecla(window, key, scancode, action, mods):
-    global olhar_x, olhar_y, noite
+    #global olhar_x, olhar_y, noite
+    global coracao_x, coracao_y, noite, petala_alternativa
     if action != glfw.PRESS and action != glfw.REPEAT:
         return
     if key == glfw.KEY_ESCAPE:
@@ -127,7 +131,7 @@ def tecla(window, key, scancode, action, mods):
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT, glfw.KEY_UP, glfw.KEY_DOWN):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
         dy = {glfw.KEY_DOWN: -1.0, glfw.KEY_UP: 1.0}.get(key, 0.0)
-        olhar_x += dx * PASSO_OLHAR
+        """ olhar_x += dx * PASSO_OLHAR
         olhar_y += dy * PASSO_OLHAR
         # O branco do olho e um CIRCULO, entao o limite tem de ser no vetor.
         # Limitar cada eixo em separado prende a pupila num quadrado, e na
@@ -136,7 +140,14 @@ def tecla(window, key, scancode, action, mods):
         distancia = (olhar_x ** 2 + olhar_y ** 2) ** 0.5
         if distancia > LIMITE_OLHAR:
             olhar_x *= LIMITE_OLHAR / distancia
-            olhar_y *= LIMITE_OLHAR / distancia
+            olhar_y *= LIMITE_OLHAR / distancia """
+        coracao_x += dx * PASSO_CORACAO
+        coracao_y += dy * PASSO_CORACAO
+        # mantem o coracao dentro da janela
+        coracao_x = max(-0.7, min(0.7, coracao_x))
+        coracao_y = max(-0.7, min(0.7, coracao_y))
+    elif key == glfw.KEY_C and action == glfw.PRESS:
+        petala_alternativa = not petala_alternativa
 
 
 glfw.set_key_callback(janela, tecla)
@@ -185,21 +196,29 @@ def desenhar_grama():
         y = -0.90
         desenhar(vao_tri, ESCALA_GRAMA, (x, y), VERDE, moderngl.TRIANGLES)
 
+def desenhar_sol():
+    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), AMARELO)
 
+def desenhar_lua():
+    desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), CINZA)
+    desenhar(vao_circulo, ESCALA_LUA, (-0.40, 0.32), BRANCO_OLHO)
+    desenhar(vao_circulo, (ESCALA_LUA-0.04), (-0.27, 0.48), BRANCO_OLHO)
+    desenhar(vao_circulo, (ESCALA_LUA-0.05), (-0.60, 0.3), BRANCO_OLHO)
 
 def desenhar_flor(x, y):
     altura = 0.30
     desenhar(vao_caule, altura, (x, y), VERDE_CAULE, moderngl.TRIANGLES)
-    topo = y + altura                 
+    topo = y + altura
+    cor = COR_PETALA_2 if petala_alternativa else COR_PETALA                 
     for k in range(6):                # 6 petalas em volta do centro
         angulo = k * 2 * np.pi / 6
         px = x + 0.05 * np.cos(angulo)
         py = topo + 0.05 * np.sin(angulo)
-        desenhar(vao_circulo, 0.03, (px, py), COR_PETALA)
+        desenhar(vao_circulo, 0.03, (px, py), cor)
     desenhar(vao_circulo, 0.025, (x, topo), AMARELO)   
 
 def desenhar_flores():
-    passo = 0.20   #ir andando no eixo x
+    passo = 0.20   
     for i in range(9):
         desenhar_flor(-0.8 + i * passo, -0.88)
 
@@ -211,22 +230,20 @@ while not glfw.window_should_close(janela):
     ctx.clear(*(FUNDO_NOITE if noite else FUNDO_DIA))
     desenhar_flores()
     desenhar_grama()
-    POS_CORACAO = (0.5, -0.7)
-    desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
     if noite:
-        desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), CINZA)
-        desenhar(vao_circulo, ESCALA_LUA, (-0.40, 0.32), BRANCO_OLHO)
-        desenhar(vao_circulo, (ESCALA_LUA-0.04), (-0.27, 0.48), BRANCO_OLHO)
-        desenhar(vao_circulo, (ESCALA_LUA-0.05), (-0.60, 0.3), BRANCO_OLHO)
+        desenhar_lua()
     else:
-        desenhar(vao_circulo, ESCALA_SOL, (-0.5, 0.5), AMARELO)
+        desenhar_sol()
+
+    POS_CORACAO = (coracao_x, coracao_y)
+    desenhar(vao_coracao, ESCALA_CORPO, POS_CORACAO, MAGENTA)
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
     for lado in (-1.0, 1.0):
         centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
         desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO)
-        desenhar(vao_circulo, ESCALA_PUPILA,
-                 (centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
+        #desenhar(vao_circulo, ESCALA_PUPILA,(centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
+        desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO)
 
     glfw.swap_buffers(janela)
     glfw.poll_events()
