@@ -242,7 +242,7 @@ while not glfw.window_should_close(janela):
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
     for lado in (-1.0, 1.0):
-        centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
+        centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
         desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO, moderngl.TRIANGLE_FAN)
         #desenhar(vao_circulo, ESCALA_PUPILA,(centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
         desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO, moderngl.TRIANGLE_FAN)
