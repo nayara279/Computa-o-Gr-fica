@@ -27,7 +27,7 @@ ESCALA_GRAMA = 0.10
 ESCALA_CORPO = 0.31
 ESCALA_OLHO, ESCALA_PUPILA = 0.0425, 0.020
 ESCALA_SOL = 0.35
-ESCALA_LUA = (0.10)
+ESCALA_LUA = 0.10
 CENTRO_OLHO = (0.085, 0.10)   # afastamento do eixo e altura de cada olho
 
 # Ate onde a pupila pode sair do centro do olho, sem escapar do branco.
