@@ -1,15 +1,6 @@
 """
-Senhor Coracao: uma geometria desenhada varias vezes.
-
-Duas curvas na VRAM (o coracao e um circulo) e cinco desenhos por quadro. O que
-muda de um desenho para o outro nao esta em nenhum VBO: esta em variaveis
-uniformes. As teclas nao animam nada -- elas trocam o valor de uma uniforme, e
-o desenho seguinte ja sai diferente.
-
-MCCC007-23 - Computacao Grafica - UFABC
-
-Executar: python 06_senhor_coracao.py
-Teclas:   SETAS movem o olhar | D alterna dia/noite | ESC sai | tecla c troca a cor
+Atividade 2 - Cena 2D
+Teclas:   SETAS movem o olhar | D alterna dia/noite | ESC sai | tecla C troca a cor
 """
 import sys
 from pathlib import Path
@@ -133,7 +124,6 @@ def tecla(window, key, scancode, action, mods):
         dy = {glfw.KEY_DOWN: -1.0, glfw.KEY_UP: 1.0}.get(key, 0.0)
         coracao_x += dx * PASSO_CORACAO
         coracao_y += dy * PASSO_CORACAO
-        # mantem o coracao dentro da janela
         coracao_x = max(-0.7, min(0.7, coracao_x))
         coracao_y = max(-0.7, min(0.7, coracao_y))
         """ tirei o movimento do olho para colocar o movimento do coração
@@ -148,7 +138,7 @@ def tecla(window, key, scancode, action, mods):
             olhar_x *= LIMITE_OLHAR / distancia
             olhar_y *= LIMITE_OLHAR / distancia """
        
-    elif key == glfw.KEY_C and action == glfw.PRESS:
+    elif key == glfw.KEY_C:
         petala_alternativa = not petala_alternativa
 
 
@@ -176,7 +166,6 @@ def desenhar(vao, escala, deslocamento, cor, primitiva):
     vao.render(primitiva)
 
 def triangulo():
-    # 3 vértices (x, y, z, w) = 1 triângulo, base embaixo e ponta em cima
     return np.array([(-1.0, -1.0, 0.0, 1.0),
                      ( 1.0, -1.0, 0.0, 1.0),
                      ( 0.0,  1.0, 0.0, 1.0)], dtype='f4')
@@ -184,7 +173,6 @@ def triangulo():
 vbo_tri, vao_tri = montar(triangulo())
 
 def retangulo():
-    # caule: x em [-0.05, 0.05], y em [0, 1], feito de 2 triangulos (6 vertices)
     return np.array([(-0.05, 0.0, 0.0, 1.0), ( 0.05, 0.0, 0.0, 1.0), ( 0.05, 1.0, 0.0, 1.0),
                      ( 0.05, 1.0, 0.0, 1.0), (-0.05, 1.0, 0.0, 1.0), (-0.05, 0.0, 0.0, 1.0)],
                     dtype='f4')
@@ -192,7 +180,7 @@ def retangulo():
 vbo_caule, vao_caule = montar(retangulo())
 
 def desenhar_grama():
-    passo = 0.20  #ir andando no eixo x
+    passo = 0.20  
     for i in range(11):
         x = -1.0 + i * passo
         y = -0.90
@@ -212,7 +200,7 @@ def desenhar_flor(x, y):
     desenhar(vao_caule, altura, (x, y), VERDE_CAULE, moderngl.TRIANGLES)
     topo = y + altura
     cor = COR_PETALA_2 if petala_alternativa else COR_PETALA                 
-    for k in range(6):                # 6 petalas em volta do centro
+    for k in range(6):             
         angulo = k * 2 * np.pi / 6
         px = x + 0.05 * np.cos(angulo)
         py = topo + 0.05 * np.sin(angulo)
@@ -242,7 +230,7 @@ while not glfw.window_should_close(janela):
 
     # A mesma geometria de circulo, quatro vezes, so mudando os uniformes.
     for lado in (-1.0, 1.0):
-        centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
+        centro = centro = (POS_CORACAO[0] + lado * CENTRO_OLHO[0], POS_CORACAO[1] + CENTRO_OLHO[1])
         desenhar(vao_circulo, ESCALA_OLHO, centro, BRANCO_OLHO, moderngl.TRIANGLE_FAN)
         #desenhar(vao_circulo, ESCALA_PUPILA,(centro[0] + olhar_x, centro[1] + olhar_y), PRETO)
         desenhar(vao_circulo, ESCALA_PUPILA, centro, PRETO, moderngl.TRIANGLE_FAN)
