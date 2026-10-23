@@ -18,8 +18,9 @@ import numpy as np
 
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
+ROSA = (0.85, 0.1, 0.7, 1.0)
+ESCALA_RETANGULO = 0.30
 LADO = 800 
-
 JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
 
 
@@ -27,16 +28,12 @@ JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
 VEL_JOGADOR , VEL_ALVO , VEL_TIRO = 1.5 , 1.2 , 2.5
 LIMITE_Y = [-0.9, 0.9]  # limite do retangulo
 DT_MAXIMO = 0.05
-
 FUNDO = (0.02 , 0.03 , 0.23 , 1.0)
 
-# Raquete (y = JOGADOR_Y; limite em x = LIMITE_Y, acima)
-RAQUETE_MEIA_LARGURA, RAQUETE_MEIA_ALTURA = 0.15, 0.02
-PASSO_RAQUETE = 0.05
-COR_RAQUETE = (0.90, 0.90, 0.95, 1.0)
+
+retangulo_x, retangulo_y = 0.0, -0.6
 
 #inicializacao
-
 def erro_glfw ( codigo , descricao ) :
     """ Sem este callback , a razao real de uma falha do GLFW e descartada e
     so resta a mensagem generica do sys . exit ."""
@@ -59,14 +56,14 @@ glfw . window_hint ( glfw . SAMPLES , 4)
 # com o tamanho antigo , e o NDC deixa de ser quadrado na tela .
 glfw . window_hint ( glfw . RESIZABLE , False )
 
-janela = glfw . create_window ( LADO , LADO , "Arkanoid", None , None)
-if not janela :
-    glfw . terminate ()
-    sys . exit (" FALHA : nao foi possivel criar a janela ")
+janela = glfw.create_window ( LADO , LADO , "Arkanoid", None , None)
+if not janela:
+    glfw.terminate ()
+    sys.exit (" FALHA : nao foi possivel criar a janela ")
 
 glfw . make_context_current ( janela )
 glfw . swap_interval (1) # espera o retraco vertical : ver a nota sobre vsync
-ctx = moderngl . create_context ()
+ctx = moderngl.create_context ()
 
 prog = ctx . program (
     vertex_shader =(SHADERS/"arkanoid.vert") . read_text (encoding ="utf-8") ,
@@ -74,32 +71,19 @@ prog = ctx . program (
 )
 
 
+
 #def's
-def tecla ( window , key , scancode , action , mods ) :
-    global atirando
-    global raquete_x
-    if key == glfw . KEY_ESCAPE and action == glfw . PRESS :
-        glfw . set_window_should_close ( window , True )
-    elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT) and action in (glfw.PRESS, glfw.REPEAT):
-        dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
-        raquete_x += dx * PASSO_RAQUETE
-        raquete_x = max(LIMITE_Y[0] + RAQUETE_MEIA_LARGURA,
-                        min(LIMITE_Y[1] - RAQUETE_MEIA_LARGURA, raquete_x))
-
-glfw . set_key_callback ( janela , tecla )
-
-
-def montar(vertices):
-    vbo = ctx.buffer(vertices.tobytes())
-    return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
-
-
 def ajustar(nome, valor):
-    """Escreve num uniforme, se ele existir."""
+    """Escreve num uniforme, se ele existir.
+
+    Um uniforme que o shader deixa de usar e descartado pelo ligador do
+    GLSL, e prog[nome] levantaria KeyError. Os experimentos do capitulo
+    fazem exatamente isso -- ignorar u_cor, ignorar u_atenuacao -- entao
+    o acesso passa todo por aqui.
+    """
     uniforme = prog.get(nome, None)
     if uniforme is not None:
         uniforme.value = valor
-
 
 def desenhar(vao, escala, deslocamento, cor, primitiva):
     """Carrega os tres uniformes daquele desenho e dispara a chamada."""
@@ -108,20 +92,31 @@ def desenhar(vao, escala, deslocamento, cor, primitiva):
     ajustar('u_cor', cor)
     vao.render(primitiva)
 
+def montar(vertices):
+    vbo = ctx.buffer(vertices.tobytes())
+    return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
 
 def retangulo():
-    # centrado na origem, ja no tamanho da raquete
-    w, h = RAQUETE_MEIA_LARGURA, RAQUETE_MEIA_ALTURA
-    return np.array([(-w, -h, 0.0, 1.0), ( w, -h, 0.0, 1.0), ( w,  h, 0.0, 1.0),
-                     ( w,  h, 0.0, 1.0), (-w,  h, 0.0, 1.0), (-w, -h, 0.0, 1.0)],
+    return np.array([(-1.0, 0.0, 0.0, 1.0), ( 1.0, 0.0, 0.0, 1.0), ( 1.0, 0.5, 0.0, 1.0),
+                     ( 1.0, 0.5, 0.0, 1.0), (-1.0, 0.5, 0.0, 1.0), (-1.0, 0.0, 0.0, 1.0)],
                     dtype='f4')
-
 
 vbo_retangulo, vao_retangulo = montar(retangulo())
 
+def tecla ( window , key , scancode , action , mods ) :
+    global atirando
+    if key == glfw . KEY_ESCAPE and action == glfw . PRESS :
+        glfw . set_window_should_close ( window , True )
+    elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT):
+        dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
+        retangulo_x += dx * DT_MAXIMO
+        retangulo_x = max(-0.6, min(0.6, retangulo_x))
+    
+
+glfw . set_key_callback ( janela , tecla )
+
 
 #laco principal
-raquete_x = 0.0
 instante_anterior = glfw.get_time ()
 quadros , marco = 0 , instante_anterior
 
@@ -130,7 +125,6 @@ while not glfw . window_should_close ( janela ) :
 
     # --- desenho ---
     ctx.clear(*FUNDO)
-    desenhar(vao_retangulo, 1.0, (raquete_x, JOGADOR_Y), COR_RAQUETE, moderngl.TRIANGLES)
 
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
