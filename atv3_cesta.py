@@ -1,9 +1,8 @@
 """
 Arkanoid
 
-setas: movem o retanglo
+setas: movem a cesta
 enter: iviciar/reiniciar
-espaço: lança a bola
 P: pausa
 V: liga/desliga vsync
 ESC: fechar tela ok
@@ -19,7 +18,7 @@ import numpy as np
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
 ROSA = (0.85, 0.1, 0.7, 1.0)
-ESCALA_RETANGULO = 0.30
+ESCALA_CESTA = 0.30
 LADO = 800 
 JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
 
@@ -31,7 +30,7 @@ DT_MAXIMO = 0.05
 FUNDO = (0.02 , 0.03 , 0.23 , 1.0)
 
 
-retangulo_x, retangulo_y = 0.0, -0.6
+cesta_x, cesta_y= 0.0, -0.6
 
 #inicializacao
 def erro_glfw ( codigo , descricao ) :
@@ -96,12 +95,14 @@ def montar(vertices):
     vbo = ctx.buffer(vertices.tobytes())
     return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
 
-def retangulo():
-    return np.array([(-1.0, 0.0, 0.0, 1.0), ( 1.0, 0.0, 0.0, 1.0), ( 1.0, 0.5, 0.0, 1.0),
-                     ( 1.0, 0.5, 0.0, 1.0), (-1.0, 0.5, 0.0, 1.0), (-1.0, 0.0, 0.0, 1.0)],
-                    dtype='f4')
+def desenhar_cesta:
+    return np.array([(-0.4, 0.4, 0.0, 1.0), ( 0.4, 0.4, 0.0, 1.0), (-0.6, 0.2, 0.0, 1.0),
+                     ( 0.4, 0.4, 0.0, 1.0), ( 0.6, 0.2, 0.0, 1.0), (-0.6, 0.2, 0.0, 1.0),
+                     (-0.8, 0.4, 0.0, 1.0), (-0.8, 0.2, 0.0, 1.0), ( 0.8, 0.2, 0.0, 1.0),
+                     ( 0.8, 0.2, 0.0, 1.0), ( 0.8, 0.4, 0.0, 1.0), (-0.8, 0.4, 0.0, 1.0)],
+                     dtype='f4')
 
-vbo_retangulo, vao_retangulo = montar(retangulo())
+vbo_cesta, vao_cesta = montar(desenhar_cesta())
 
 def tecla ( window , key , scancode , action , mods ) :
     global atirando
@@ -129,7 +130,7 @@ while not glfw . window_should_close ( janela ) :
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
 
-for recurso in (prog ) :
+for recurso in (vbo_cesta, vao_cesta, prog) :
     recurso.release ()
 glfw.terminate ()
 print ( f" Execucao finalizada")
