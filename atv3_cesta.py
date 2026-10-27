@@ -127,7 +127,8 @@ while not glfw . window_should_close ( janela ) :
 
     # --- desenho ---
     ctx.clear(*FUNDO)
-
+    desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), BEGE, moderngl.TRIANGLE_FAN)
+    
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
 
