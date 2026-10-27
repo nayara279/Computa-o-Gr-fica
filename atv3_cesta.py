@@ -17,7 +17,8 @@ import numpy as np
 
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
-ROSA = (0.85, 0.1, 0.7, 1.0)
+ROSA = (0.85, 0.10, 0.70, 1.00)
+BEGE = (0.80, 0.70, 0.25, 0.80)
 ESCALA_CESTA = 0.30
 LADO = 800 
 JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
@@ -110,8 +111,8 @@ def tecla ( window , key , scancode , action , mods ) :
         glfw . set_window_should_close ( window , True )
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
-        retangulo_x += dx * DT_MAXIMO
-        retangulo_x = max(-0.6, min(0.6, retangulo_x))
+        cesta_x += dx * DT_MAXIMO
+        cesta_x = max(-0.6, min(0.6, cesta_x))
     
 
 glfw . set_key_callback ( janela , tecla )
