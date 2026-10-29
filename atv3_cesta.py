@@ -1,5 +1,5 @@
 """
-Arkanoid
+Jogo da Cesta
 
 setas: movem a cesta
 enter: iviciar/reiniciar
@@ -18,20 +18,20 @@ import numpy as np
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
 ROSA = (0.85, 0.10, 0.70, 1.00)
-BEGE = (0.80, 0.70, 0.25, 0.80)
-ESCALA_CESTA = 0.30
+MARROM = (0.60, 0.45, 0.05, 1.0)
+ESCALA_CESTA = 0.25
 LADO = 800 
 JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
 
 
 # Unidades de NDC por SEGUNDO -- nao por quadro . Essa e a diferença do capitulo .
-VEL_JOGADOR , VEL_ALVO , VEL_TIRO = 1.5 , 1.2 , 2.5
-LIMITE_Y = [-0.9, 0.9]  # limite do retangulo
+VEL_JOGADOR , VEL_ALVO , VEL_TIRO = 1.5 , 1.2 , 2.5 
+LIMITE_X = [-0.75, 0.75] 
 DT_MAXIMO = 0.05
-FUNDO = (0.02 , 0.03 , 0.23 , 1.0)
+FUNDO = (0.73, 0.85, 0.92, 1.0)
 
 
-cesta_x, cesta_y= 0.0, -0.6
+cesta_x, cesta_y= 0.0, -0.9
 
 #inicializacao
 def erro_glfw ( codigo , descricao ) :
@@ -56,7 +56,7 @@ glfw . window_hint ( glfw . SAMPLES , 4)
 # com o tamanho antigo , e o NDC deixa de ser quadrado na tela .
 glfw . window_hint ( glfw . RESIZABLE , False )
 
-janela = glfw.create_window ( LADO , LADO , "Arkanoid", None , None)
+janela = glfw.create_window ( LADO , LADO , "Jogo da Cesta", None , None)
 if not janela:
     glfw.terminate ()
     sys.exit (" FALHA : nao foi possivel criar a janela ")
@@ -66,7 +66,7 @@ glfw . swap_interval (1) # espera o retraco vertical : ver a nota sobre vsync
 ctx = moderngl.create_context ()
 
 prog = ctx . program (
-    vertex_shader =(SHADERS/"arkanoid.vert") . read_text (encoding ="utf-8") ,
+    vertex_shader =(SHADERS/"cesta.vert") . read_text (encoding ="utf-8") ,
     fragment_shader =(SHADERS/"basico.frag"). read_text ( encoding ="utf-8") ,
 )
 
@@ -96,26 +96,26 @@ def montar(vertices):
     vbo = ctx.buffer(vertices.tobytes())
     return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
 
-def desenhar_cesta:
-    return np.array([(-0.4, 0.4, 0.0, 1.0), ( 0.4, 0.4, 0.0, 1.0), (-0.6, 0.2, 0.0, 1.0),
-                     ( 0.4, 0.4, 0.0, 1.0), ( 0.6, 0.2, 0.0, 1.0), (-0.6, 0.2, 0.0, 1.0),
-                     (-0.8, 0.4, 0.0, 1.0), (-0.8, 0.2, 0.0, 1.0), ( 0.8, 0.2, 0.0, 1.0),
+def desenhar_cesta():
+    return np.array([(-0.6, 0.2, 0.0, 1.0), ( 0.6, 0.2, 0.0, 1.0), (-0.4, -0.2, 0.0, 1.0),
+                     ( 0.6, 0.2, 0.0, 1.0), ( 0.4, -0.2, 0.0, 1.0), (-0.4, -0.2, 0.0, 1.0),
+                     (-0.8, 0.4, 0.0, 1.0), (-0.8, 0.2, 0.0, 1.0), ( 0.8, 0.20, 0.0, 1.0),
                      ( 0.8, 0.2, 0.0, 1.0), ( 0.8, 0.4, 0.0, 1.0), (-0.8, 0.4, 0.0, 1.0)],
                      dtype='f4')
 
 vbo_cesta, vao_cesta = montar(desenhar_cesta())
 
 def tecla ( window , key , scancode , action , mods ) :
-    global atirando
+    global cesta_x
     if key == glfw . KEY_ESCAPE and action == glfw . PRESS :
         glfw . set_window_should_close ( window , True )
     elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT):
         dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
         cesta_x += dx * DT_MAXIMO
-        cesta_x = max(-0.6, min(0.6, cesta_x))
+        cesta_x = max(LIMITE_X[0], min(LIMITE_X[1], cesta_x))
     
 
-glfw . set_key_callback ( janela , tecla )
+glfw.set_key_callback (janela, tecla )
 
 
 #laco principal
@@ -127,7 +127,7 @@ while not glfw . window_should_close ( janela ) :
 
     # --- desenho ---
     ctx.clear(*FUNDO)
-    desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), BEGE, moderngl.TRIANGLE_FAN)
+    desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), MARROM, moderngl.TRIANGLES)
     
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
