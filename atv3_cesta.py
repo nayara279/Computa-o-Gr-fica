@@ -29,6 +29,7 @@ FUNDO = (0.73, 0.85, 0.92, 1.0)
 
 ESCALA_CEREJA = 0.05
 ESCALA_CESTA = 0.25
+ESCALA_VIDA = 0.028
 LADO = 800 
 
 VEL_CEREJA = 0.70
@@ -37,9 +38,12 @@ LIMITE_X = [-0.75, 0.75]
 Y_CHAO = -1.0
 DT_MAXIMO = 0.05
 META_PEGAS = 30
-MAX_PERDIDAS = 10
+MAX_PERDIDAS = 5
 INTERVALO_CEREJA = 1.0
-
+VIDAS_CANTO = (-0.90, 0.92)
+VIDAS_PASSO = 0.075
+PULSO_FREQ = 0.8
+PULSO_AMPL = 0.2
 
 cesta_x, cesta_y= 0.0, -0.9
 INICIO, JOGANDO, PAUSADO, FIM = (0, 1, 2, 3)
@@ -49,6 +53,7 @@ vsync = True
 cerejas = []
 pegas, perdidas = 0, 0
 tempo_cereja = 0.0
+fase = 0.0
 
 #inicializacao
 def erro_glfw ( codigo , descricao ) :
@@ -134,9 +139,9 @@ def desenhar_caule():
                      ( 0.15,  1.0, 0.0, 1.0), (-0.15,  1.0, 0.0, 1.0), (-0.15, -0.1, 0.0, 1.0)],
                      dtype='f4')
 
-def desenhar_cereja(x, y):
-    desenhar(vao_caule,   ESCALA_CEREJA, (x, y + 0.05), VERDE, moderngl.TRIANGLES)
-    desenhar(vao_circulo, ESCALA_CEREJA, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
+def desenhar_cereja(x, y, escala=ESCALA_CEREJA):
+    desenhar(vao_caule, escala, (x, y + 0.05), VERDE, moderngl.TRIANGLES)
+    desenhar(vao_circulo, escala, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
 
 def colidiu(cx, cy):
     meia_larg = 0.8 * ESCALA_CESTA + ESCALA_CEREJA                  # 0.20 + 0.05 = 0.25
@@ -180,7 +185,10 @@ quadros , marco = 0 , instante_anterior
 while not glfw.window_should_close(janela):
     agora = glfw.get_time()
     dt = min(agora - instante_anterior, DT_MAXIMO)
-    instante_anterior = agora   
+    instante_anterior = agora
+    
+    if estado != PAUSADO:
+        fase += dt 
 
     if estado == JOGANDO:
         direita = glfw.get_key(janela, glfw.KEY_RIGHT) == glfw.PRESS
@@ -228,6 +236,11 @@ while not glfw.window_should_close(janela):
     desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), MARROM, moderngl.TRIANGLES)
     for x, y in cerejas:
         desenhar_cereja(x, y)
+    
+    vidas = MAX_PERDIDAS - perdidas
+    for i in range(vidas):
+        k = 1.0 + PULSO_AMPL * np.sin(2.0 * np.pi * PULSO_FREQ * fase + 0.6 * i)
+        desenhar_cereja(VIDAS_CANTO[0] + i * VIDAS_PASSO, VIDAS_CANTO[1], ESCALA_VIDA * k)
 
     glfw.swap_buffers(janela)
     glfw.poll_events()
