@@ -17,8 +17,11 @@ import numpy as np
 
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
-ROSA = (0.85, 0.10, 0.70, 1.00)
+ROSA = (0.85, 0.10, 0.70, 1.0)
 MARROM = (0.60, 0.45, 0.05, 1.0)
+VERMELHO = (0.80, 0.05, 0.10, 1.0)
+VERDE = (0.15, 0.55, 0.20, 1.0)
+ESCALA_CEREJA = 0.05
 ESCALA_CESTA = 0.25
 LADO = 800 
 JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
@@ -29,7 +32,6 @@ VEL_JOGADOR , VEL_ALVO , VEL_TIRO = 1.5 , 1.2 , 2.5
 LIMITE_X = [-0.75, 0.75] 
 DT_MAXIMO = 0.05
 FUNDO = (0.73, 0.85, 0.92, 1.0)
-
 
 cesta_x, cesta_y= 0.0, -0.9
 
@@ -85,16 +87,27 @@ def ajustar(nome, valor):
     if uniforme is not None:
         uniforme.value = valor
 
+def leque(x, y):
+    """Empacota uma curva fechada como TRIANGLE_FAN: primeiro o centro, depois
+    a curva, e o primeiro ponto repetido no fim para fechar a volta."""
+    x = np.concatenate(([0.0], x, [x[0]]))
+    y = np.concatenate(([0.0], y, [y[0]]))
+    return np.column_stack((x, y, np.zeros_like(x), np.ones_like(x))).astype('f4')
+
+def montar(vertices):
+    vbo = ctx.buffer(vertices.tobytes())
+    return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
+
+def curva_circulo(n=48):
+    t = np.linspace(0.0, 2.0 * np.pi, n, endpoint=False)
+    return leque(np.cos(t), np.sin(t))
+
 def desenhar(vao, escala, deslocamento, cor, primitiva):
     """Carrega os tres uniformes daquele desenho e dispara a chamada."""
     ajustar('u_escala', escala)
     ajustar('u_deslocamento', deslocamento)
     ajustar('u_cor', cor)
     vao.render(primitiva)
-
-def montar(vertices):
-    vbo = ctx.buffer(vertices.tobytes())
-    return vbo, ctx.vertex_array(prog, [(vbo, '4f', 'vPosition')])
 
 def desenhar_cesta():
     return np.array([(-0.6, 0.2, 0.0, 1.0), ( 0.6, 0.2, 0.0, 1.0), (-0.4, -0.2, 0.0, 1.0),
@@ -103,7 +116,19 @@ def desenhar_cesta():
                      ( 0.8, 0.2, 0.0, 1.0), ( 0.8, 0.4, 0.0, 1.0), (-0.8, 0.4, 0.0, 1.0)],
                      dtype='f4')
 
+def desenhar_caule():
+    return np.array([(-0.15, -0.1, 0.0, 1.0), ( 0.15, -0.1, 0.0, 1.0), ( 0.15, 1.0, 0.0, 1.0),
+                     ( 0.15,  1.0, 0.0, 1.0), (-0.15,  1.0, 0.0, 1.0), (-0.15, -0.1, 0.0, 1.0)],
+                     dtype='f4')
+
+def desenhar_cereja(x, y):
+    desenhar(vao_caule,   ESCALA_CEREJA, (x, y + 0.05), VERDE, moderngl.TRIANGLES)
+    desenhar(vao_circulo, ESCALA_CEREJA, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
+
+
 vbo_cesta, vao_cesta = montar(desenhar_cesta())
+vbo_circulo, vao_circulo = montar(curva_circulo())
+vbo_caule, vao_caule = montar(desenhar_caule())
 
 def tecla ( window , key , scancode , action , mods ) :
     global cesta_x
@@ -128,11 +153,12 @@ while not glfw . window_should_close ( janela ) :
     # --- desenho ---
     ctx.clear(*FUNDO)
     desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), MARROM, moderngl.TRIANGLES)
-    
+    desenhar_cereja(0.0, 0.5)
+
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
 
-for recurso in (vbo_cesta, vao_cesta, prog) :
+for recurso in (vbo_cesta, vao_cesta, vbo_circulo, vao_circulo, prog) :
     recurso.release ()
 glfw.terminate ()
 print ( f" Execucao finalizada")
