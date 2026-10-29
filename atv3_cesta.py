@@ -24,11 +24,10 @@ VERDE = (0.15, 0.55, 0.20, 1.0)
 ESCALA_CEREJA = 0.05
 ESCALA_CESTA = 0.25
 LADO = 800 
-JOGADOR_Y , ESCALA_JOGADOR = -0.80 , 0.20
 
 
 # Unidades de NDC por SEGUNDO -- nao por quadro . Essa e a diferença do capitulo .
-VEL_JOGADOR , VEL_ALVO , VEL_TIRO = 1.5 , 1.2 , 2.5 
+VEL_CEREJA = 0.5 
 LIMITE_X = [-0.75, 0.75] 
 DT_MAXIMO = 0.05
 FUNDO = (0.73, 0.85, 0.92, 1.0)
@@ -125,6 +124,11 @@ def desenhar_cereja(x, y):
     desenhar(vao_caule,   ESCALA_CEREJA, (x, y + 0.05), VERDE, moderngl.TRIANGLES)
     desenhar(vao_circulo, ESCALA_CEREJA, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
 
+def colidiu(cx, cy):
+    meia_larg = 0.8 * ESCALA_CESTA + ESCALA_CEREJA                  # 0.20 + 0.05 = 0.25
+    meia_alt  = 0.3 * ESCALA_CESTA + ESCALA_CEREJA                  # 0.075 + 0.05 = 0.125
+    centro_y  = cesta_y + 0.1 * ESCALA_CESTA                        # -0.9 + 0.025 = -0.875
+    return abs(cx - cesta_x) < meia_larg and abs(cy - centro_y) < meia_alt
 
 vbo_cesta, vao_cesta = montar(desenhar_cesta())
 vbo_circulo, vao_circulo = montar(curva_circulo())
@@ -146,19 +150,28 @@ glfw.set_key_callback (janela, tecla )
 #laco principal
 instante_anterior = glfw.get_time ()
 quadros , marco = 0 , instante_anterior
+cerejas = [[-0.6, 1.1], [-0.2, 1.6], [0.2, 2.1], [0.6, 2.6]]
+pegas, perdidas = 0, 0
 
 while not glfw . window_should_close ( janela ) :
     agora = glfw.get_time ()  
+    dt = min ( agora - instante_anterior , DT_MAXIMO )
+    instante_anterior = agora
+
+    for c in cerejas:
+        c[1] -= VEL_CEREJA * dt
 
     # --- desenho ---
     ctx.clear(*FUNDO)
     desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), MARROM, moderngl.TRIANGLES)
-    desenhar_cereja(0.0, 0.5)
+    for x, y in cerejas:
+        desenhar_cereja(x, y)
+    
 
     glfw . swap_buffers ( janela )
     glfw . poll_events ()
 
-for recurso in (vbo_cesta, vao_cesta, vbo_circulo, vao_circulo, prog) :
+for recurso in (vbo_cesta, vao_cesta, vbo_circulo, vao_circulo, vbo_caule, vao_caule, prog) :
     recurso.release ()
 glfw.terminate ()
 print ( f" Execucao finalizada")
