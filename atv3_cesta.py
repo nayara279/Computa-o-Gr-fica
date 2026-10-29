@@ -14,25 +14,41 @@ from pathlib import Path
 import glfw
 import moderngl
 import numpy as np
+import random
 
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
 ROSA = (0.85, 0.10, 0.70, 1.0)
 MARROM = (0.60, 0.45, 0.05, 1.0)
 VERMELHO = (0.80, 0.05, 0.10, 1.0)
+VERMELHO_CLARO = (0.90, 0.55, 0.55, 1.0)
 VERDE = (0.15, 0.55, 0.20, 1.0)
+VERDE_CLARO = (0.70, 0.90, 0.70, 1.0)
+AZUL_ESCURO = (0.10, 0.10, 0.40, 1)
+FUNDO = (0.73, 0.85, 0.92, 1.0)
+
 ESCALA_CEREJA = 0.05
 ESCALA_CESTA = 0.25
 LADO = 800 
 
-
-# Unidades de NDC por SEGUNDO -- nao por quadro . Essa e a diferença do capitulo .
-VEL_CEREJA = 0.5 
+VEL_CEREJA = 0.70
+VEL_CESTA = 1.2
 LIMITE_X = [-0.75, 0.75] 
+Y_CHAO = -1.1
 DT_MAXIMO = 0.05
-FUNDO = (0.73, 0.85, 0.92, 1.0)
+META_PEGAS = 30
+MAX_PERDIDAS = 10
+INTERVALO_CEREJA = 1.0
+
 
 cesta_x, cesta_y= 0.0, -0.9
+INICIO, JOGANDO, PAUSADO, FIM = (0, 1, 2, 3)
+estado = INICIO
+venceu = False
+vsync = True
+cerejas = []
+pegas, perdidas = 0, 0
+tempo_cereja = 0.0
 
 #inicializacao
 def erro_glfw ( codigo , descricao ) :
@@ -70,8 +86,6 @@ prog = ctx . program (
     vertex_shader =(SHADERS/"cesta.vert") . read_text (encoding ="utf-8") ,
     fragment_shader =(SHADERS/"basico.frag"). read_text ( encoding ="utf-8") ,
 )
-
-
 
 #def's
 def ajustar(nome, valor):
@@ -134,15 +148,27 @@ vbo_cesta, vao_cesta = montar(desenhar_cesta())
 vbo_circulo, vao_circulo = montar(curva_circulo())
 vbo_caule, vao_caule = montar(desenhar_caule())
 
-def tecla ( window , key , scancode , action , mods ) :
-    global cesta_x
-    if key == glfw . KEY_ESCAPE and action == glfw . PRESS :
-        glfw . set_window_should_close ( window , True )
-    elif key in (glfw.KEY_LEFT, glfw.KEY_RIGHT):
-        dx = {glfw.KEY_LEFT: -1.0, glfw.KEY_RIGHT: 1.0}.get(key, 0.0)
-        cesta_x += dx * DT_MAXIMO
-        cesta_x = max(LIMITE_X[0], min(LIMITE_X[1], cesta_x))
-    
+def tecla(window, key, scancode, action, mods):
+    global cesta_x, cerejas, pegas, perdidas, tempo_cereja, estado, venceu, vsync
+    if action != glfw.PRESS:
+        return
+    if key == glfw.KEY_ESCAPE:
+        glfw.set_window_should_close(window, True)
+    elif key == glfw.KEY_ENTER:
+        cesta_x = 0.0
+        cerejas = []
+        pegas, perdidas = 0, 0
+        tempo_cereja = INTERVALO_CEREJA 
+        venceu = False
+        estado = JOGANDO
+    elif key == glfw.KEY_P:
+        if estado == JOGANDO:
+            estado = PAUSADO
+        elif estado == PAUSADO:
+            estado = JOGANDO
+    elif key == glfw.KEY_V:
+        vsync = not vsync
+        glfw.swap_interval(1 if vsync else 0)   
 
 glfw.set_key_callback (janela, tecla )
 
@@ -150,26 +176,68 @@ glfw.set_key_callback (janela, tecla )
 #laco principal
 instante_anterior = glfw.get_time ()
 quadros , marco = 0 , instante_anterior
-cerejas = [[-0.6, 1.1], [-0.2, 1.6], [0.2, 2.1], [0.6, 2.6]]
-pegas, perdidas = 0, 0
 
-while not glfw . window_should_close ( janela ) :
-    agora = glfw.get_time ()  
-    dt = min ( agora - instante_anterior , DT_MAXIMO )
-    instante_anterior = agora
+while not glfw.window_should_close(janela):
+    agora = glfw.get_time()
+    dt = min(agora - instante_anterior, DT_MAXIMO)
+    instante_anterior = agora   
 
-    for c in cerejas:
-        c[1] -= VEL_CEREJA * dt
+    if estado == JOGANDO:
+        direita = glfw.get_key(janela, glfw.KEY_RIGHT) == glfw.PRESS
+        esquerda = glfw.get_key(janela, glfw.KEY_LEFT) == glfw.PRESS
+        sentido_jogador = float(direita) - float(esquerda)
+        cesta_x += sentido_jogador * VEL_CESTA * dt
+        cesta_x = max(LIMITE_X[0], min(LIMITE_X[1], cesta_x))
+
+        # nascimento contínuo de cerejas
+        tempo_cereja += dt
+        if tempo_cereja >= INTERVALO_CEREJA:
+            tempo_cereja -= INTERVALO_CEREJA
+            cerejas.append([random.uniform(LIMITE_X[0], LIMITE_X[1]), 1.1])
+
+        # queda, colisão e chão
+        for c in cerejas[:]:            
+            c[1] -= VEL_CEREJA * dt      # DESCER CEREJAS
+            if colidiu(c[0], c[1]):
+                pegas += 1
+                cerejas.remove(c)
+            elif c[1] < Y_CHAO:
+                perdidas += 1
+                cerejas.remove(c)
+
+        # vitória / derrota
+        if pegas >= META_PEGAS:
+            venceu = True
+            estado = FIM
+        elif perdidas >= MAX_PERDIDAS:
+            venceu = False
+            estado = FIM
 
     # --- desenho ---
-    ctx.clear(*FUNDO)
+    if estado == FIM:
+        if venceu:
+            fundo = VERDE_CLARO  
+        else: 
+            fundo = VERMELHO_CLARO
+    elif estado == PAUSADO:
+        fundo = AZUL_ESCURO
+    else:
+        fundo = FUNDO
+    ctx.clear(*fundo)
+
     desenhar(vao_cesta, ESCALA_CESTA, (cesta_x, cesta_y), MARROM, moderngl.TRIANGLES)
     for x, y in cerejas:
         desenhar_cereja(x, y)
-    
 
-    glfw . swap_buffers ( janela )
-    glfw . poll_events ()
+    glfw.swap_buffers(janela)
+    glfw.poll_events()
+
+    # --- título: estado, placar e fps ---
+    quadros += 1
+    if agora - marco >= 0.5:
+        nome = {INICIO: "ENTER para iniciar", JOGANDO: "Jogando", PAUSADO: "PAUSADO", FIM: "VITÓRIA! (ENTER reinicia)" if venceu else "DERROTA (ENTER reinicia)"}[estado]
+        glfw.set_window_title(janela, f"Jogo da Cesta - {nome} - pegas {pegas}/{META_PEGAS} - "f"perdidas {perdidas}/{MAX_PERDIDAS} - {quadros / (agora - marco):5.1f} fps")
+        quadros, marco = 0, agora
 
 for recurso in (vbo_cesta, vao_cesta, vbo_circulo, vao_circulo, vbo_caule, vao_caule, prog) :
     recurso.release ()
