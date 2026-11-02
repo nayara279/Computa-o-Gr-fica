@@ -2,10 +2,10 @@
 Jogo da Cesta
 
 setas: movem a cesta
-enter: iviciar/reiniciar
+enter: iniciar/reiniciar
 P: pausa
 V: liga/desliga vsync
-ESC: fechar tela ok
+ESC: fechar tela
 
 """
 import sys
@@ -18,7 +18,6 @@ import random
 
 SHADERS = Path ( __file__ ) . parent / "shaders"
 
-ROSA = (0.85, 0.10, 0.70, 1.0)
 MARROM = (0.60, 0.45, 0.05, 1.0)
 VERMELHO = (0.80, 0.05, 0.10, 1.0)
 VERMELHO_CLARO = (0.90, 0.55, 0.55, 1.0)
