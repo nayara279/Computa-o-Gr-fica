@@ -140,7 +140,7 @@ def desenhar_caule():
                      dtype='f4')
 
 def desenhar_cereja(x, y, escala=ESCALA_CEREJA):
-    desenhar(vao_caule, escala, (x, y + 0.05), VERDE, moderngl.TRIANGLES)
+    desenhar(vao_caule, escala, (x, y + escala), VERDE, moderngl.TRIANGLES)
     desenhar(vao_circulo, escala, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
 
 def colidiu(cx, cy):
