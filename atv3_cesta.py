@@ -144,9 +144,9 @@ def desenhar_cereja(x, y, escala=ESCALA_CEREJA):
     desenhar(vao_circulo, escala, (x, y), VERMELHO, moderngl.TRIANGLE_FAN)
 
 def colidiu(cx, cy):
-    meia_larg = 0.8 * ESCALA_CESTA + ESCALA_CEREJA                  # 0.20 + 0.05 = 0.25
-    meia_alt  = 0.3 * ESCALA_CESTA + ESCALA_CEREJA                  # 0.075 + 0.05 = 0.125
-    centro_y  = cesta_y + 0.1 * ESCALA_CESTA                        # -0.9 + 0.025 = -0.875
+    meia_larg = 0.8 * ESCALA_CESTA + ESCALA_CEREJA
+    meia_alt  = 0.3 * ESCALA_CESTA + ESCALA_CEREJA
+    centro_y  = cesta_y + 0.1 * ESCALA_CESTA
     return abs(cx - cesta_x) < meia_larg and abs(cy - centro_y) < meia_alt
 
 vbo_cesta, vao_cesta = montar(desenhar_cesta())
@@ -197,15 +197,13 @@ while not glfw.window_should_close(janela):
         cesta_x += sentido_jogador * VEL_CESTA * dt
         cesta_x = max(LIMITE_X[0], min(LIMITE_X[1], cesta_x))
 
-        # nascimento contínuo de cerejas
         tempo_cereja += dt
         if tempo_cereja >= INTERVALO_CEREJA:
             tempo_cereja -= INTERVALO_CEREJA
             cerejas.append([random.uniform(LIMITE_X[0], LIMITE_X[1]), 1.1])
 
-        # queda, colisão e chão
         for c in cerejas[:]:            
-            c[1] -= VEL_CEREJA * dt      # DESCER CEREJAS
+            c[1] -= VEL_CEREJA * dt
             if colidiu(c[0], c[1]):
                 pegas += 1
                 cerejas.remove(c)
@@ -213,7 +211,6 @@ while not glfw.window_should_close(janela):
                 perdidas += 1
                 cerejas.remove(c)
 
-        # vitória / derrota
         if pegas >= META_PEGAS:
             venceu = True
             estado = FIM
@@ -221,7 +218,6 @@ while not glfw.window_should_close(janela):
             venceu = False
             estado = FIM
 
-    # --- desenho ---
     if estado == FIM:
         if venceu:
             fundo = VERDE_CLARO  
@@ -245,7 +241,6 @@ while not glfw.window_should_close(janela):
     glfw.swap_buffers(janela)
     glfw.poll_events()
 
-    # --- título: estado, placar e fps ---
     quadros += 1
     if agora - marco >= 0.5:
         nome = {INICIO: "ENTER para iniciar", JOGANDO: "Jogando", PAUSADO: "PAUSADO", FIM: "VITÓRIA! (ENTER reinicia)" if venceu else "DERROTA (ENTER reinicia)"}[estado]
