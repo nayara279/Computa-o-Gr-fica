@@ -1,0 +1,107 @@
+JOGO DA CESTA 3D  (Atividade 5 - Computação Gráfica, UFABC)
+=====================================================================
+
+COMO RODAR
+    python main.py            (dentro desta pasta)
+Precisa de: glfw, moderngl, numpy, pyglm e pillow (as do curso).
+O OpenGL 4.0 Core é pedido na criação da janela.
+
+O JOGO
+Cerejas caem do céu e a cesta as apanha. Cereja pega = 1 ponto.
+Cereja que toca o chão = perde 1 das 5 vidas. Vence com 20 pegas.
+
+TECLAS E MOUSE
+    SETAS ........ movem a cesta (esquerda/direita e frente/trás)
+    ENTER ........ inicia / reinicia (sem fechar o programa)
+    P ............ pausa
+    V ............ liga/desliga o vsync (o fps aparece no título)
+    C ............ troca a câmera: segue a cesta / visão geral
+    L ............ liga/desliga a luz direcional
+    W ............ modo aramado
+    Z ............ endireita a cena (trackball)   I ... inércia
+    ESC .......... sai
+    Mouse: arrastar com o botão esquerdo gira a cena (câmera geral)
+           roda aproxima e afasta (as duas câmeras)
+
+ESTRUTURA DA PASTA
+    main.py        laço do jogo, callbacks, desenho do quadro
+    jogo.py        regras: estados, movimento, colisão, pontuação (sem OpenGL)
+    placar.py      placar em segunda passada (ortográfica, sem profundidade)
+    formas.py      cilindro, quadrado e disco gerados por código
+    camera.py      câmera LookAt com dois modos e projeção perspectiva
+    material.py    materiais e luzes (Blinn-Phong)
+    malha.py  texturas.py  trackball.py     do visualizador, sem alteração
+    shaders/       jogo.vert/.frag (Phong + textura), placar.*, skybox.*
+    off/           cesta.off e esfera.off (modelos lidos de arquivo)
+    texturas/      brick_base.jpg, cesta_palha.png, cubemap/
+    ferramentas/   gerar_recursos.py (cria os OFF e a textura de palha)
+
+REAPROVEITADO x CRIADO
+Do visualizador do professor (v3):
+    malha.py, texturas.py, trackball.py (cópias exatas, só fim de linha);
+    camera.py e material.py (adaptados); os shaders skybox.vert/.frag
+    (o .frag ganhou o u_tom); a estrutura de main.py (Album, vao_de,
+    enviar, abrir, cubo_do_skybox, callbacks, redimensionou); a ideia de
+    textura.vert/.frag para jogo.vert/.frag.
+Do jogo 2D e da cena 2D (Senhor Coração):
+    estados, constantes e regras, o laço com dt, ajustar/desenhar,
+    leque/curva_circulo/curva_coracao, as vidas pulsando, o placar.
+Criado agora:
+    jogo.py (3D), formas.py, placar.py (ortográfico), jogo.vert/.frag
+    com duas luzes, a câmera de dois modos, os modelos OFF e a textura
+    de palha (ferramentas/gerar_recursos.py).
+
+ONDE CADA REQUISITO É CUMPRIDO
+Mantidos do jogo 2D
+  Animação por tempo ........ main.py (laço: dt = min(agora - anterior, DT_MAXIMO));
+                              velocidades em unidades por segundo (jogo.py)
+  Vsync e fps no título ..... main.py (tecla V; título a cada 0,5 s)
+  Passo máximo .............. DT_MAXIMO = 0.05 (main.py)
+  Animação autônoma ......... lâmpada girando em torno da arena (main.py) e
+                              vidas pulsando (placar.py)
+  Estados e reinício ........ jogo.py (INICIO, JOGANDO, PAUSADO, FIM; ENTER)
+  Pausa ..................... jogo.atualizar() não move nada; o dt continua
+                              medido, então o tempo parado não acumula
+  Placar na cena ............ placar.py: vidas (cerejas) e pontos (quadrados),
+                              ortográfica, sem teste de profundidade
+  Geometrias uma vez ........ main.py (Objeto): VBO/EBO/VAO e texturas na
+                              inicialização; a matriz de modelo vai por uniforme
+  Múltiplas primitivas ...... TRIANGLES (objetos), TRIANGLE_FAN (círculo e
+                              coração do placar), LINE_LOOP (contornos)
+Novos
+  3 objetos 3D .............. cesta (OFF), esfera (OFF), caule (cilindro),
+                              piso (quadrado), sombra (disco)
+  OFF enquadrado ............ Malha.matriz_enquadramento() em main.py; as
+                              coordenadas do arquivo não são alteradas
+  Profundidade e culling .... sempre ligados (desenhar_quadro); faces em
+                              sentido anti-horário
+  Câmera LookAt ............. camera.py (dois modos, tecla C)
+  Perspectiva e resize ...... camera.projecao(); callback do framebuffer em
+                              main.py (viewport e aspecto)
+  near e far ................ camera.py: envolvem a esfera de raio 9 da cena
+                              (near sobe até onde a esfera permite; mínimo 0,1)
+  Phong/Blinn-Phong ......... jogo.frag (por fragmento)
+  Iluminação (5 itens) ...... 2 tipos de luz ao mesmo tempo (pontual com
+                              atenuação + direcional); lâmpada que se move;
+                              materiais CEREJA, CAULE, CESTA, PISO; matriz
+                              normal (caule com escala não uniforme);
+                              tudo no espaço da câmera
+  Texturas .................. piso (tijolo) e cesta (palha); coordenadas por
+                              mapeamento cilíndrico com costura (cesta) e
+                              geradas com a geometria (piso); GL_REPEAT no
+                              piso (0 a 8); mipmaps + trilinear; GL_SRGB8_ALPHA8
+                              com GL_FRAMEBUFFER_SRGB
+  Teclado ................... get_key no laço (setas); callback (demais teclas)
+  Mouse ..................... callbacks de botão (trackball) e de roda (zoom)
+  Colisão 3D ................ jogo.colidiu(): esfera x caixa alinhada aos eixos
+  Tunelamento ............... passo máximo por quadro = 1,7 x 0,05 = 0,085, menor
+                              que o diâmetro da cereja (0,32) e que a altura da
+                              caixa (0,44): a esfera não atravessa a caixa
+
+CRÉDITOS (para o relatório)
+  texturas/brick_base.jpg ..... fornecida pelo professor (pasta texturas/)
+  texturas/cubemap/ ........... Emil Persson (Humus), CC BY 3.0
+  texturas/cesta_palha.png .... criada pelo grupo (ferramentas/gerar_recursos.py)
+  off/cesta.off, off/esfera.off  criados pelo grupo (mesmo script)
+  Confirme com o professor a fonte e a licença de brick_base.jpg.
+  Lembrete: o relatório exige a Declaração de Uso de IA.
