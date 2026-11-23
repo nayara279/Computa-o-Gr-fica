@@ -31,8 +31,6 @@ PISO = Material("piso (tijolo)", (0.35, 0.35, 0.35), (1.0, 1.0, 1.0),
                 (0.04, 0.04, 0.04), 8.0)
 
 # Sem iluminacao (a lampada e as sombras): so o kd, como cor pura.
-LAMPADA = Material("lampada", (0.0, 0.0, 0.0), (1.0, 0.90, 0.55),
-                   (0.0, 0.0, 0.0), 1.0)
 SOMBRA = Material("sombra", (0.0, 0.0, 0.0), (0.0, 0.0, 0.0),
                   (0.0, 0.0, 0.0), 1.0)
 
