@@ -1,17 +1,5 @@
 """
-Jogo da Cesta 3D (Atividade 5): continuacao do Jogo da Cesta 2D.
-
-Cerejas caem do ceu e a cesta as apanha. Cada cereja pega vale 1 ponto e
-cada cereja que toca o chao custa 1 das 5 vidas. Vence com 20 pegas;
-perde ao ficar sem vidas.
-
-Os modulos malha, texturas e trackball sao os do visualizador da apostila
-(v3), sem alteracoes; camera e material foram adaptados dele. O laco, o
-placar, as regras e os estados vem do jogo 2D (jogo.py e placar.py).
-O mapa cubico (texturas/cubemap/) e de Emil Persson (Humus,
-http://www.humus.name), licenca CC BY 3.0.
-
-MCCC007-23 - Computacao Grafica - UFABC
+Jogo da Cesta 3D: continuacao do Jogo da Cesta 2D.
 
 Executar: python main.py
 Teclas:   SETAS movem a cesta (esquerda/direita e frente/tras)
