@@ -39,7 +39,7 @@ from formas import cilindro, disco, quadrado            # noqa: E402
 from jogo import (Jogo, INICIO, JOGANDO, PAUSADO, FIM,  # noqa: E402
                   RAIO_CEREJA, ALTURA_CEU, META_PEGAS, MAX_PERDIDAS)
 from malha import Malha                                 # noqa: E402
-from material import (CEREJA, CAULE, CESTA, PISO, LAMPADA,  # noqa: E402
+from material import (CEREJA, CAULE, CESTA, PISO,  # noqa: E402
                       SOMBRA, Luz)
 from placar import Placar                               # noqa: E402
 from trackball import Trackball                         # noqa: E402
@@ -65,7 +65,6 @@ OPACIDADE_SOMBRA = 0.45
 # (direcional) e fixo. Ambas, ao mesmo tempo.
 AMBIENTE = glm.vec3(0.55, 0.55, 0.62)
 RAIO_LAMPADA, ALTURA_LAMPADA, VEL_LAMPADA = 3.4, 2.8, 0.7   # VEL em rad/s
-RAIO_ESFERA_LAMPADA = 0.14
 
 # Tom aplicado a cena inteira, no lugar das cores de fundo do jogo 2D.
 TOM_NORMAL = glm.vec3(1.0, 1.0, 1.0)
